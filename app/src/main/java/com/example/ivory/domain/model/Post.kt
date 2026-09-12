@@ -2,6 +2,7 @@ package com.example.ivory.domain.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class Post(
     val id: String,
     val username: String,
@@ -14,12 +15,13 @@ data class Post(
     val moderation: ModerationInfo
 )
 
+@Serializable
 data class ModerationInfo(
     val toxicityScore: Float,
     val ageRating: String,
     val isSensitive: Boolean,
     val reason: String?
-) {s
+) {
     val shouldBlur: Boolean
         get() = isSensitive || toxicityScore > 0.7f
 }
