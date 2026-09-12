@@ -271,3 +271,7 @@ def classify_batch(req: ClassifyBatchRequest):
     if not req.texts:
         raise HTTPException(status_code=400, detail="texts must not be empty")
     return {"results": [predict(t, top_n=req.top_n or 5) for t in req.texts]}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
