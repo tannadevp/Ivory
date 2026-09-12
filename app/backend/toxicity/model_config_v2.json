@@ -1,0 +1,1 @@
+{"vocab_size": 20000, "embed_dim": 128, "hidden_dim": 128, "num_labels": 4, "dropout": 0.3, "max_len": 100, "labels": ["toxicity", "hate", "harassment", "abuse"], "focal_alpha": 0.25, "focal_gamma": 2.0}
