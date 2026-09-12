@@ -1,1 +1,3 @@
 cyhi-logs/.local/
+venv/
+app/backend/venv/
