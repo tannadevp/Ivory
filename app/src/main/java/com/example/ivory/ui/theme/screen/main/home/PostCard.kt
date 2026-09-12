@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -43,9 +44,13 @@ import coil3.compose.AsyncImage
 import com.example.ivory.domain.model.Post
 
 @Composable
-fun PostCard(post: Post, onLikeToggled: () -> Unit) {
-    var liked by remember { mutableStateOf(post.isLiked) }
+fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
+    var liked by remember { mutableStateOf(false) } 
     val scale by animateFloatAsState(if (liked) 1.2f else 1f, label = "likeScale")
+    
+    // Track whether a flagged/sensitive post has been manually revealed by the user
+    var revealed by remember { mutableStateOf(false) }
+    val isFlagged = post.moderation.toxicityScore > 0.5f
 
     Card(
         modifier = Modifier
@@ -69,13 +74,12 @@ fun PostCard(post: Post, onLikeToggled: () -> Unit) {
                 Text(post.username, color = Color.White, fontWeight = FontWeight.SemiBold)
 
                 Spacer(Modifier.weight(1f))
-
-                post.mlTag?.let {
+                if (isFlagged) {
                     AssistChip(
-                        onClick = {},
-                        label = { Text(it, fontSize = 11.sp) },
+                        onClick = { revealed = !revealed },
+                        label = { Text(if (revealed) "Hide" else "Reveal", fontSize = 11.sp) },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFF6C4DFF),
+                            containerColor = if (revealed) Color(0xFF444444) else Color(0xFFFF4D4D),
                             labelColor = Color.White
                         )
                     )
@@ -83,25 +87,30 @@ fun PostCard(post: Post, onLikeToggled: () -> Unit) {
             }
 
             Spacer(Modifier.height(8.dp))
-            Text(post.content, color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 20.sp)
 
-            post.imageUrl?.let {
-                Spacer(Modifier.height(10.dp))
-                AsyncImage(
-                    model = it,
-                    contentDescription = "Post image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 260.dp)
-                        .clip(RoundedCornerShape(14.dp)),
-                    contentScale = ContentScale.Crop
-                )
+            Column(
+                modifier = Modifier.blur(if (isFlagged && !revealed) 16.dp else 0.dp)
+            ) {
+                Text(post.content, color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 20.sp)
+
+                post.imageUrl?.let {
+                    Spacer(Modifier.height(10.dp))
+                    AsyncImage(
+                        model = it,
+                        contentDescription = "Post image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 260.dp)
+                            .clip(RoundedCornerShape(14.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
             Spacer(Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = {
                     liked = !liked
-                    onLikeToggled()
+                    onLikeToggled(liked)
                 }) {
                     Icon(
                         imageVector = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
@@ -128,15 +137,20 @@ fun PostCard(post: Post, onLikeToggled: () -> Unit) {
 fun PostCardPreview() {
     PostCard(
         post = Post(
-            id="abc",
+            id = "abc",
             username = "neha",
-            userAvatarUrl = "",
-            content = "Exploring how AI and ML can make everyday applications smarter! 🚀",
+            userAvatarUrl = null,
+            content = "Exploring how AI and ML can make everyday applications smarter!",
             imageUrl = null,
-            mlTag = "Machine Learning",
             likeCount = 24,
             commentCount = 6,
-            isLiked = false
+            timestamp = System.currentTimeMillis(),
+            moderation = com.example.ivory.domain.model.ModerationInfo(
+                toxicityScore = 0.72f,
+                ageRating = "PG",
+                isSensitive = false,
+                reason = null
+            )
         ),
         onLikeToggled = {}
     )
