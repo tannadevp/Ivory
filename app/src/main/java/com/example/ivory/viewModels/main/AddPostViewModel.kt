@@ -3,6 +3,7 @@ package com.example.ivory.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ivory.data.remote.dto.ModerationResponseDto
+import com.example.ivory.data.repository.FeedStore
 import com.example.ivory.data.repository.ModerationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,12 +16,14 @@ data class AddPostUiState(
     val text: String = "",
     val isLoading: Boolean = false,
     val result: ModerationResponseDto? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isPosted: Boolean = false
 )
 
 @HiltViewModel
 class AddPostViewModel @Inject constructor(
-    private val repository: ModerationRepository
+    private val repository: ModerationRepository,
+    private val feedStore: FeedStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddPostUiState())
@@ -31,7 +34,8 @@ class AddPostViewModel @Inject constructor(
             text = text,
             // A previous analysis no longer describes the edited post.
             result = null,
-            error = null
+            error = null,
+            isPosted = false
         )
     }
 
@@ -71,5 +75,14 @@ class AddPostViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun publishPost() {
+        val result = _uiState.value.result ?: return
+        val text = _uiState.value.text.trim()
+        if (text.isBlank()) return
+
+        feedStore.publish(text, result)
+        _uiState.value = _uiState.value.copy(isPosted = true)
     }
 }

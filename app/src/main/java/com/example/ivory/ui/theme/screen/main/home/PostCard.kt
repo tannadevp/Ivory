@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -50,7 +49,7 @@ fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
     
     // Track whether a flagged/sensitive post has been manually revealed by the user
     var revealed by remember { mutableStateOf(false) }
-    val isFlagged = post.moderation.toxicityScore > 0.5f
+    val isFlagged = post.moderation.shouldBlur
 
     Card(
         modifier = Modifier
@@ -88,9 +87,15 @@ fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
-            Column(
-                modifier = Modifier.blur(if (isFlagged && !revealed) 16.dp else 0.dp)
-            ) {
+            if (isFlagged && !revealed) {
+                Text(
+                    "Sensitive content is hidden. Tap Reveal to view it.",
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 28.dp)
+                )
+            } else {
+                Column {
                 Text(post.content, color = Color(0xFFE0E0E0), fontSize = 15.sp, lineHeight = 20.sp)
 
                 post.imageUrl?.let {
@@ -105,8 +110,24 @@ fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
                         contentScale = ContentScale.Crop
                     )
                 }
+                }
             }
             Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "ML reviewed",
+                    color = Color(0xFF8F7CFF),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Age rating: ${post.moderation.ageRating}",
+                    color = Color.LightGray,
+                    fontSize = 12.sp
+                )
+            }
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = {
                     liked = !liked

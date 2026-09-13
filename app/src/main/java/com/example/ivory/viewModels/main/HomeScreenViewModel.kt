@@ -2,21 +2,31 @@ package com.example.ivory.viewModels.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ivory.domain.dummy.dummyPosts
-import com.example.ivory.domain.repository.FeedRepository
+import com.example.ivory.data.repository.FeedStore
+import com.example.ivory.data.repository.ModerationRepository
+import com.example.ivory.domain.model.ModerationInfo
 import com.example.ivory.ui.theme.screen.main.home.HomeUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(
-    private val repository: FeedRepository = com.example.ivory.domain.repository.FakeFeedRepository()
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val moderationRepository: ModerationRepository,
+    private val feedStore: FeedStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            feedStore.posts.collect { posts ->
+                _uiState.value = _uiState.value.copy(posts = posts, isLoading = false)
+            }
+        }
         loadFeed()
     }
 
@@ -29,21 +39,22 @@ class HomeViewModel(
                 error = null
             )
 
-            repository.getFeed(page = 1)
-                .onSuccess { posts ->
-
-                    _uiState.value = HomeUiState(
-                        posts = posts,
-                        isLoading = false
-                    )
-                }
-                .onFailure { error ->
-
-                    _uiState.value = HomeUiState(
-                        isLoading = false,
-                        error = error.message
-                    )
-                }
+            val moderatedPosts = feedStore.posts.value.map { post ->
+                runCatching { moderationRepository.moderatePost(post.content) }
+                    .getOrNull()
+                    ?.let { result ->
+                        post.copy(
+                            moderation = ModerationInfo(
+                                toxicityScore = result.overallToxicity,
+                                ageRating = result.ageRating,
+                                isSensitive = result.isSensitive || result.anyFlagged,
+                                reason = result.warningReason.takeIf { it.isNotBlank() }
+                            )
+                        )
+                    }
+                    ?: post
+            }
+            feedStore.replacePosts(moderatedPosts)
         }
     }
 }

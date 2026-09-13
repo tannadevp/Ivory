@@ -63,13 +63,20 @@ fun AddPostScreen(viewModel: AddPostViewModel = hiltViewModel()) {
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = viewModel::checkPost,
-            enabled = uiState.text.isNotBlank() && !uiState.isLoading,
+            onClick = if (uiState.result == null) viewModel::checkPost else viewModel::publishPost,
+            enabled = uiState.text.isNotBlank() && !uiState.isLoading && !uiState.isPosted,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C4DFF))
         ) {
-            Text("Check content")
+            Text(
+                when {
+                    uiState.isLoading -> "Checking content..."
+                    uiState.isPosted -> "Posted to Home"
+                    uiState.result != null -> "Post content"
+                    else -> "Check content"
+                }
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -80,6 +87,11 @@ fun AddPostScreen(viewModel: AddPostViewModel = hiltViewModel()) {
 
         uiState.result?.let { result ->
             AnalysisResultCard(result)
+        }
+
+        if (uiState.isPosted) {
+            Spacer(Modifier.height(12.dp))
+            Text("Your post is now at the top of the Home feed.", color = Color(0xFF71D68A))
         }
 
         uiState.error?.let { error ->

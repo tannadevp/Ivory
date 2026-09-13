@@ -60,14 +60,6 @@ fun AnalysisResultCard(result: ModerationResponseDto) {
             Spacer(Modifier.height(8.dp))
             Text(result.message, color = Color.LightGray, fontSize = 13.sp)
 
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Age rating: ${result.ageRating} (${result.ageRatingLevel})",
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
-            )
-
             if (result.anyFlagged || result.isSensitive) {
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
