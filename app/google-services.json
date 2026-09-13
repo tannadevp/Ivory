@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591923546167",
+    "project_id": "ivory-51629",
+    "storage_bucket": "ivory-51629.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591923546167:android:a7bfda4bf48c94c6dd97b2",
+        "android_client_info": {
+          "package_name": "com.example.ivory"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlvIieHlDvLsccAn590Hy32QFk2cnjPY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
