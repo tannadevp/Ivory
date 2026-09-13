@@ -7,30 +7,78 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.ivory.ui.theme.IvoryTheme
 import com.example.ivory.ui.theme.navigation.AppNavGraph
 import com.example.ivory.ui.theme.navigation.BottomNavBar
+import com.example.ivory.ui.theme.screen.auth.emailVerification.EmailVerificationScreen
+import com.example.ivory.ui.theme.screen.auth.emailVerified.EmailVerifiedScreen
+import com.example.ivory.ui.theme.screen.auth.forgotPassword.ForgotPasswordScreen
+import com.example.ivory.ui.theme.screen.auth.GetStartedScreen
+import com.example.ivory.ui.theme.screen.auth.login.LoginScreen
+import com.example.ivory.ui.theme.screen.auth.signUp.SignUpScreen
+import com.example.ivory.ui.theme.screen.auth.SplashScreen
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             IvoryTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = { BottomNavBar(navController) }
-                ) { innerPadding ->
-                    AppNavGraph(
-                        navController = navController,
-                        modifier = Modifier.padding(innerPadding)
+                var appStage by rememberSaveable { mutableStateOf(AppStage.SPLASH) }
+                var verificationEmail by rememberSaveable { mutableStateOf("") }
+                when (appStage) {
+                    AppStage.SPLASH -> SplashScreen(
+                        onLoadingComplete = { appStage = AppStage.GET_STARTED }
                     )
+
+                    AppStage.GET_STARTED -> GetStartedScreen(
+                        onCreateAccount = { appStage = AppStage.SIGN_UP },
+                        onLogIn = { appStage = AppStage.LOGIN }
+                    )
+
+                    AppStage.LOGIN -> LoginScreen(
+                        onLogIn = { appStage = AppStage.MAIN },
+                        onEmailVerification = { email ->
+                            verificationEmail = email
+                            appStage = AppStage.EMAIL_VERIFICATION
+                        },
+                        onForgotPassword = { appStage = AppStage.FORGOT_PASSWORD },
+                        onSignUp = { appStage = AppStage.SIGN_UP }
+                    )
+
+                    AppStage.SIGN_UP -> SignUpScreen(
+                        onSignUp = { email ->
+                            verificationEmail = email
+                            appStage = AppStage.EMAIL_VERIFICATION
+                        },
+                        onLogIn = { appStage = AppStage.LOGIN }
+                    )
+
+                    AppStage.FORGOT_PASSWORD -> ForgotPasswordScreen(
+                        onBackToLogin = { appStage = AppStage.LOGIN }
+                    )
+
+                    AppStage.EMAIL_VERIFICATION -> EmailVerificationScreen(
+                        email = verificationEmail,
+                        onVerified = { appStage = AppStage.EMAIL_VERIFIED },
+                        onBackToLogin = { appStage = AppStage.LOGIN }
+                    )
+
+                    AppStage.EMAIL_VERIFIED -> EmailVerifiedScreen(
+                        email = verificationEmail,
+                        onContinue = { appStage = AppStage.MAIN }
+                    )
+
+                    AppStage.MAIN -> MainContent()
                 }
             }
         }
@@ -38,17 +86,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+private fun MainContent() {
+    val navController = rememberNavController()
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = { BottomNavBar(navController) }
+    ) { innerPadding ->
+        AppNavGraph(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    IvoryTheme {
-        Greeting("Android")
-    }
+private enum class AppStage {
+    SPLASH,
+    GET_STARTED,
+    LOGIN,
+    SIGN_UP,
+    FORGOT_PASSWORD,
+    EMAIL_VERIFICATION,
+    EMAIL_VERIFIED,
+    MAIN
 }

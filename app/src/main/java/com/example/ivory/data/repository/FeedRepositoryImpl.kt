@@ -37,7 +37,7 @@ class FeedRepositoryImpl(
 
     override suspend fun moderatePost(content: String): Result<ModerationResponseDto> {
         return try {
-            val response = api.moderatePost(ModerationDto(content = content))
+            val response = api.moderatePost(ModerationDto(text = content))
 
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)

@@ -1,65 +1,75 @@
-package com.example.ivory.viewModels.main
+package com.example.ivory.viewModels
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ivory.domain.repository.FeedRepository
-import com.example.ivory.domain.repository.FakeFeedRepository
-import com.example.ivory.ui.theme.screen.main.addPost.AddPostUiState
+import com.example.ivory.data.remote.dto.ModerationResponseDto
+import com.example.ivory.data.repository.ModerationRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AddPostViewModel(
-    private val repo: FeedRepository = FakeFeedRepository()
+data class AddPostUiState(
+    val text: String = "",
+    val isLoading: Boolean = false,
+    val result: ModerationResponseDto? = null,
+    val error: String? = null
+)
+
+@HiltViewModel
+class AddPostViewModel @Inject constructor(
+    private val repository: ModerationRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<AddPostUiState>(AddPostUiState.Idle)
-    val uiState: StateFlow<AddPostUiState> = _uiState
+    private val _uiState = MutableStateFlow(AddPostUiState())
+    val uiState: StateFlow<AddPostUiState> = _uiState.asStateFlow()
 
-    var content by mutableStateOf("")
-        private set
-
-    fun onContentChanged(newContent: String) {
-        content = newContent
-        // Reset the moderation result if the user edits after seeing it
-        if (_uiState.value is AddPostUiState.Checked) {
-            _uiState.value = AddPostUiState.Idle
-        }
+    fun onTextChanged(text: String) {
+        _uiState.value = _uiState.value.copy(
+            text = text,
+            // A previous analysis no longer describes the edited post.
+            result = null,
+            error = null
+        )
     }
 
-    fun checkContent() {
-        if (content.isBlank()) return
-        viewModelScope.launch {
-            _uiState.value = AddPostUiState.Checking
-            repo.moderatePost(content)
-                .onSuccess { _uiState.value = AddPostUiState.Checked(it) }
-                .onFailure { _uiState.value = AddPostUiState.Error(it.message ?: "Failed to check content") }
-        }
-    }
+    fun checkPost() {
 
-    fun publishPost() {
-        val current = _uiState.value
-        if (current !is AddPostUiState.Checked) return
-        if (current.result.toxicityScore > 0.95f) {
-            _uiState.value = AddPostUiState.Error(
-                "This content violates community guidelines and can't be posted."
+        val text = _uiState.value.text.trim()
+
+        if (text.isEmpty()) {
+            _uiState.value = _uiState.value.copy(
+                error = "Please enter something"
             )
             return
         }
 
         viewModelScope.launch {
-            // TODO: replace with a real publish/createPost API call once your
-            // friend adds one. For now this just simulates success so you can
-            // test the full UI flow with dummy posts.
-            _uiState.value = AddPostUiState.Posted
-        }
-    }
 
-    fun reset() {
-        content = ""
-        _uiState.value = AddPostUiState.Idle
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null,
+                result = null
+            )
+
+            try {
+
+                val response = repository.moderatePost(text)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    result = response
+                )
+
+            } catch (e: Exception) {
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Something went wrong"
+                )
+            }
+        }
     }
 }

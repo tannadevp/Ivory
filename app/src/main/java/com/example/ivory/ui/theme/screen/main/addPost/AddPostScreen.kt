@@ -1,26 +1,21 @@
 package com.example.ivory.ui.theme.screen.main.addPost
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -28,11 +23,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ivory.viewModels.main.AddPostViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.ivory.viewModels.AddPostViewModel
 
 @Composable
-fun AddPostScreen(viewModel: AddPostViewModel = viewModel()) {
+fun AddPostScreen(viewModel: AddPostViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
@@ -50,8 +45,8 @@ fun AddPostScreen(viewModel: AddPostViewModel = viewModel()) {
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = viewModel.content,
-            onValueChange = viewModel::onContentChanged,
+            value = uiState.text,
+            onValueChange = viewModel::onTextChanged,
             placeholder = { Text("What's on your mind?", color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,61 +62,28 @@ fun AddPostScreen(viewModel: AddPostViewModel = viewModel()) {
 
         Spacer(Modifier.height(16.dp))
 
-        when (val state = uiState) {
-            is AddPostUiState.Idle -> {
-                Button(
-                    onClick = viewModel::checkContent,
-                    enabled = viewModel.content.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C4DFF))
-                ) {
-                    Text("Check & Continue")
-                }
-            }
+        Button(
+            onClick = viewModel::checkPost,
+            enabled = uiState.text.isNotBlank() && !uiState.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C4DFF))
+        ) {
+            Text("Check content")
+        }
 
-            is AddPostUiState.Checking -> {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF6C4DFF))
-                    Spacer(Modifier.width(10.dp))
-                    Text("Checking content...", color = Color.Gray)
-                }
-            }
+        Spacer(Modifier.height(16.dp))
 
-            is AddPostUiState.Checked -> {
-                AnalysisResultCard(state.result)
-                Spacer(Modifier.height(12.dp))
-                Row {
-                    OutlinedButton(
-                        onClick = viewModel::reset,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Edit") }
+        if (uiState.isLoading) {
+            CircularProgressIndicator(color = Color(0xFF6C4DFF))
+        }
 
-                    Spacer(Modifier.width(10.dp))
+        uiState.result?.let { result ->
+            AnalysisResultCard(result)
+        }
 
-                    Button(
-                        onClick = viewModel::publishPost,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C4DFF))
-                    ) { Text("Post Anyway") }
-                }
-            }
-
-            is AddPostUiState.Posted -> {
-                LaunchedEffect(Unit) {
-                    viewModel.reset()
-                }
-                Text("Posted!", color = Color.Green)
-            }
-
-            is AddPostUiState.Error -> {
-                Text(state.message, color = Color.Red)
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = viewModel::checkContent) { Text("Retry") }
-            }
+        uiState.error?.let { error ->
+            Text(error, color = Color(0xFFFF4D6D))
         }
     }
 }

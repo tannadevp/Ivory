@@ -31,9 +31,9 @@ import com.example.ivory.data.remote.dto.ModerationResponseDto
 @Composable
 fun AnalysisResultCard(result: ModerationResponseDto) {
     val statusColor = when {
-        result.toxicityScore > 0.7f -> Color(0xFFFF4D6D)   // red — high toxicity
-        result.toxicityScore > 0.4f -> Color(0xFFFFC107)   // amber — moderate
-        else -> Color(0xFF4CAF50)                          // green — safe
+        result.overallToxicity > 0.7f -> Color(0xFFFF4D6D)
+        result.overallToxicity > 0.4f -> Color(0xFFFFC107)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -51,13 +51,24 @@ fun AnalysisResultCard(result: ModerationResponseDto) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Toxicity: ${(result.toxicityScore * 100).toInt()}%",
+                    "Toxicity: ${(result.overallToxicity * 100).toInt()}%",
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
-            if (result.isSensitive) {
+            Spacer(Modifier.height(8.dp))
+            Text(result.message, color = Color.LightGray, fontSize = 13.sp)
+
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Age rating: ${result.ageRating} (${result.ageRatingLevel})",
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            if (result.anyFlagged || result.isSensitive) {
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -68,7 +79,7 @@ fun AnalysisResultCard(result: ModerationResponseDto) {
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        "Flagged: ${result.sensitivityReason?.replace("_", " ") ?: "Sensitive content"}",
+                        "${result.warningTitle}: ${result.warningReason}",
                         color = Color(0xFFFFC107),
                         fontSize = 13.sp
                     )

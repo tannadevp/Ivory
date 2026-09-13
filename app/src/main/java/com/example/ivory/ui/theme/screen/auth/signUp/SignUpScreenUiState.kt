@@ -1,4 +1,11 @@
 package com.example.ivory.ui.theme.screen.auth.signUp
 
-class SignUpScreenUiState {
-}
+data class SignUpScreenUiState(
+    val name: String = "",
+    val email: String = "",
+    val password: String = "",
+    val confirmPassword: String = "",
+    val errorMessage: String? = null,
+    val isLoading: Boolean = false,
+    val registeredEmail: String? = null
+)
