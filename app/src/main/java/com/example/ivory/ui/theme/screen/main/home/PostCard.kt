@@ -26,8 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,12 +41,14 @@ import coil3.compose.AsyncImage
 import com.example.ivory.domain.model.Post
 
 @Composable
-fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
-    var liked by remember { mutableStateOf(false) } 
+fun PostCard(
+    post: Post,
+    onLikeToggled: (Boolean) -> Unit,
+    onRevealRequested: (String) -> Unit
+) {
+    var liked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val scale by animateFloatAsState(if (liked) 1.2f else 1f, label = "likeScale")
     
-    // Track whether a flagged/sensitive post has been manually revealed by the user
-    var revealed by remember { mutableStateOf(false) }
     val isFlagged = post.moderation.shouldBlur
 
     Card(
@@ -75,10 +75,10 @@ fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
                 Spacer(Modifier.weight(1f))
                 if (isFlagged) {
                     AssistChip(
-                        onClick = { revealed = !revealed },
-                        label = { Text(if (revealed) "Hide" else "Reveal", fontSize = 11.sp) },
+                        onClick = { onRevealRequested(post.id) },
+                        label = { Text("Reveal", fontSize = 11.sp) },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = if (revealed) Color(0xFF444444) else Color(0xFFFF4D4D),
+                            containerColor = Color(0xFFFF4D4D),
                             labelColor = Color.White
                         )
                     )
@@ -87,7 +87,7 @@ fun PostCard(post: Post, onLikeToggled: (Boolean) -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
-            if (isFlagged && !revealed) {
+            if (isFlagged) {
                 Text(
                     "Sensitive content is hidden. Tap Reveal to view it.",
                     color = Color.Gray,
@@ -173,6 +173,7 @@ fun PostCardPreview() {
                 reason = null
             )
         ),
-        onLikeToggled = {}
+        onLikeToggled = {},
+        onRevealRequested = {}
     )
 }

@@ -13,7 +13,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onRevealRequested: (String) -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -26,7 +27,8 @@ fun HomeScreen(
 
             PostCard(
                 post = post,
-                onLikeToggled = { /* TODO */ }
+                onLikeToggled = { /* TODO */ },
+                onRevealRequested = onRevealRequested
             )
         }
     }

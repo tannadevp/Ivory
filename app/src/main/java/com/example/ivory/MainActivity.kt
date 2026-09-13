@@ -14,10 +14,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.ivory.ui.theme.IvoryTheme
 import com.example.ivory.ui.theme.navigation.AppNavGraph
 import com.example.ivory.ui.theme.navigation.BottomNavBar
+import com.example.ivory.ui.theme.navigation.Screen
 import com.example.ivory.ui.theme.screen.auth.emailVerification.EmailVerificationScreen
 import com.example.ivory.ui.theme.screen.auth.emailVerified.EmailVerifiedScreen
 import com.example.ivory.ui.theme.screen.auth.forgotPassword.ForgotPasswordScreen
@@ -26,6 +28,7 @@ import com.example.ivory.ui.theme.screen.auth.getDetails.GetDetailsScreen
 import com.example.ivory.ui.theme.screen.auth.login.LoginScreen
 import com.example.ivory.ui.theme.screen.auth.signUp.SignUpScreen
 import com.example.ivory.ui.theme.screen.auth.SplashScreen
+import com.google.firebase.auth.FirebaseAuth
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -38,7 +41,10 @@ class MainActivity : ComponentActivity() {
                 var verificationEmail by rememberSaveable { mutableStateOf("") }
                 when (appStage) {
                     AppStage.SPLASH -> SplashScreen(
-                        onLoadingComplete = { appStage = AppStage.GET_STARTED }
+                        onLoadingComplete = {
+                            val user = runCatching { FirebaseAuth.getInstance().currentUser }.getOrNull()
+                            appStage = if (user?.isEmailVerified == true) AppStage.MAIN else AppStage.GET_STARTED
+                        }
                     )
 
                     AppStage.GET_STARTED -> GetStartedScreen(
@@ -83,7 +89,12 @@ class MainActivity : ComponentActivity() {
                         onComplete = { appStage = AppStage.MAIN }
                     )
 
-                    AppStage.MAIN -> MainContent()
+                    AppStage.MAIN -> MainContent(
+                        onLogout = {
+                            runCatching { FirebaseAuth.getInstance().signOut() }
+                            appStage = AppStage.GET_STARTED
+                        }
+                    )
                 }
             }
         }
@@ -91,14 +102,18 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun MainContent() {
+private fun MainContent(onLogout: () -> Unit) {
     val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    val showBottomBar = currentRoute in setOf(Screen.Home.route, Screen.AddPost.route, Screen.Profile.route)
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = { BottomNavBar(navController) }
+        bottomBar = { if (showBottomBar) BottomNavBar(navController) }
     ) { innerPadding ->
         AppNavGraph(
             navController = navController,
+            onLogout = onLogout,
             modifier = Modifier.padding(innerPadding)
         )
     }

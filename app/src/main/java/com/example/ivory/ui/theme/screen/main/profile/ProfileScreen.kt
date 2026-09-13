@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -27,7 +28,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ivory.viewModels.main.ProfileViewModel
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    onLogout: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
@@ -63,6 +67,16 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
         uiState.message?.let {
             Spacer(Modifier.height(12.dp))
             Text(it, color = if (uiState.isSaved && it == "Profile saved.") Color(0xFF71D68A) else Color(0xFFFF8080))
+        }
+
+        Spacer(Modifier.height(24.dp))
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF8080))
+        ) {
+            Text("Log out")
         }
     }
 }
