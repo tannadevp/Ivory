@@ -22,6 +22,7 @@ import com.example.ivory.ui.theme.screen.auth.emailVerification.EmailVerificatio
 import com.example.ivory.ui.theme.screen.auth.emailVerified.EmailVerifiedScreen
 import com.example.ivory.ui.theme.screen.auth.forgotPassword.ForgotPasswordScreen
 import com.example.ivory.ui.theme.screen.auth.GetStartedScreen
+import com.example.ivory.ui.theme.screen.auth.getDetails.GetDetailsScreen
 import com.example.ivory.ui.theme.screen.auth.login.LoginScreen
 import com.example.ivory.ui.theme.screen.auth.signUp.SignUpScreen
 import com.example.ivory.ui.theme.screen.auth.SplashScreen
@@ -75,7 +76,11 @@ class MainActivity : ComponentActivity() {
 
                     AppStage.EMAIL_VERIFIED -> EmailVerifiedScreen(
                         email = verificationEmail,
-                        onContinue = { appStage = AppStage.MAIN }
+                        onContinue = { appStage = AppStage.GET_DETAILS }
+                    )
+
+                    AppStage.GET_DETAILS -> GetDetailsScreen(
+                        onComplete = { appStage = AppStage.MAIN }
                     )
 
                     AppStage.MAIN -> MainContent()
@@ -107,5 +112,6 @@ private enum class AppStage {
     FORGOT_PASSWORD,
     EMAIL_VERIFICATION,
     EMAIL_VERIFIED,
+    GET_DETAILS,
     MAIN
 }

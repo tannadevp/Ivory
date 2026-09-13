@@ -16,23 +16,19 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ivory.viewModels.main.ProfileViewModel
 
 @Composable
-fun ProfileScreen() {
-    var name by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
-    var age by rememberSaveable { mutableStateOf("") }
-    var dateOfBirth by rememberSaveable { mutableStateOf("") }
-    var message by rememberSaveable { mutableStateOf<String?>(null) }
+fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -40,39 +36,33 @@ fun ProfileScreen() {
             .background(Color(0xFF0F0F0F))
             .padding(16.dp)
     ) {
-        Text("Create profile", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+        Text("Your profile", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(Modifier.height(8.dp))
         Text("Add your details to finish setting up Ivory.", color = Color.Gray, fontSize = 14.sp)
         Spacer(Modifier.height(20.dp))
 
-        ProfileTextField(name, { name = it; message = null }, "Name")
-        ProfileTextField(username, { username = it; message = null }, "Username")
+        ProfileTextField(uiState.name, viewModel::updateName, "Name")
+        ProfileTextField(uiState.username, viewModel::updateUsername, "Username")
         ProfileTextField(
-            value = age,
-            onValueChange = { age = it.filter(Char::isDigit); message = null },
+            value = uiState.age,
+            onValueChange = viewModel::updateAge,
             label = "Age",
             keyboardType = KeyboardType.Number
         )
-        ProfileTextField(dateOfBirth, { dateOfBirth = it; message = null }, "Date of birth (DD/MM/YYYY)")
+        ProfileTextField(uiState.dateOfBirth, viewModel::updateDateOfBirth, "Date of birth (DD/MM/YYYY)")
 
         Spacer(Modifier.height(12.dp))
         Button(
-            onClick = {
-                message = if (name.isBlank() || username.isBlank() || age.isBlank() || dateOfBirth.isBlank()) {
-                    "Please complete all profile fields."
-                } else {
-                    "Profile created."
-                }
-            },
+            onClick = viewModel::saveProfile,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C4DFF))
         ) {
-            Text("Create profile")
+            Text(if (uiState.isSaved) "Update profile" else "Create profile")
         }
-        message?.let {
+        uiState.message?.let {
             Spacer(Modifier.height(12.dp))
-            Text(it, color = if (it == "Profile created.") Color(0xFF71D68A) else Color(0xFFFF8080))
+            Text(it, color = if (uiState.isSaved && it == "Profile saved.") Color(0xFF71D68A) else Color(0xFFFF8080))
         }
     }
 }

@@ -47,7 +47,7 @@ fun SplashScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "A kinder place to share",
+                text = "A Safer Place to Share",
                 color = Color(0xFFB7B1C8),
                 fontSize = 16.sp
             )
