@@ -1,0 +1,57 @@
+[
+  {
+    "category": "toxicity",
+    "trigger_context": "You are so stupid, this makes no sense.",
+    "suggested_rewrite": "I'm having trouble following this - could you walk me through your reasoning?"
+  },
+  {
+    "category": "toxicity",
+    "trigger_context": "This is the dumbest thing I've ever read.",
+    "suggested_rewrite": "I disagree with this and think it has some significant flaws - here's why."
+  },
+  {
+    "category": "toxicity",
+    "trigger_context": "What an idiot, how did you mess this up so badly.",
+    "suggested_rewrite": "This didn't turn out the way I expected - let's figure out what went wrong."
+  },
+  {
+    "category": "toxicity",
+    "trigger_context": "Your opinion is garbage and so are you.",
+    "suggested_rewrite": "I see this very differently - here's where I think we disagree."
+  },
+  {
+    "category": "harassment",
+    "trigger_context": "Stop replying to my posts, nobody wants you here.",
+    "suggested_rewrite": "I'd prefer we don't continue this conversation - let's leave it here."
+  },
+  {
+    "category": "harassment",
+    "trigger_context": "I'm going to make sure everyone knows what a loser you are.",
+    "suggested_rewrite": "I strongly disagree with you and don't think we see eye to eye on this."
+  },
+  {
+    "category": "harassment",
+    "trigger_context": "Keep pushing me and see what happens to you.",
+    "suggested_rewrite": "I'm getting frustrated - I think we should both step back from this thread."
+  },
+  {
+    "category": "hate",
+    "trigger_context": "People like you don't belong here.",
+    "suggested_rewrite": "I think we have very different perspectives, shaped by different backgrounds."
+  },
+  {
+    "category": "hate",
+    "trigger_context": "Your kind always causes problems.",
+    "suggested_rewrite": "I've had frustrating experiences in situations like this before."
+  },
+  {
+    "category": "abuse",
+    "trigger_context": "Shut up, you worthless piece of garbage.",
+    "suggested_rewrite": "I need a moment - can we pause this conversation?"
+  },
+  {
+    "category": "abuse",
+    "trigger_context": "You disgust me, get lost.",
+    "suggested_rewrite": "I'm upset right now and would like some space."
+  }
+]
