@@ -13,6 +13,7 @@ import javax.inject.Singleton
 /** In-memory feed shared by Home and Add Post until a posts backend is added. */
 @Singleton
 class FeedStore @Inject constructor() {
+
     private val _posts = MutableStateFlow(dummyPosts)
     val posts = _posts.asStateFlow()
 
@@ -20,7 +21,10 @@ class FeedStore @Inject constructor() {
         _posts.value = posts
     }
 
-    fun publish(content: String, result: ModerationResponseDto) {
+    fun publish(
+        content: String,
+        result: ModerationResponseDto
+    ) {
         val post = Post(
             id = UUID.randomUUID().toString(),
             username = "You",
@@ -30,13 +34,20 @@ class FeedStore @Inject constructor() {
             likeCount = 0,
             commentCount = 0,
             timestamp = System.currentTimeMillis(),
+
             moderation = ModerationInfo(
-                toxicityScore = result.overallToxicity,
-                ageRating = result.ageRating,
-                isSensitive = result.isSensitive || result.anyFlagged,
-                reason = result.warningReason.takeIf { it.isNotBlank() }
+                toxicityScore = result.overallToxicity.toFloat(),
+
+                ageRating = result.rating.ageRating,
+
+                isSensitive = result.rating.isSensitive ||
+                        result.anyFlagged,
+
+                reason = result.rating.warningReason
+                    .takeIf { it.isNotBlank() }
             )
         )
+
         _posts.value = listOf(post) + _posts.value
     }
 }

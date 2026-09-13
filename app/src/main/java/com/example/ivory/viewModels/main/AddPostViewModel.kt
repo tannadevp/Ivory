@@ -85,4 +85,16 @@ class AddPostViewModel @Inject constructor(
         feedStore.publish(text, result)
         _uiState.value = _uiState.value.copy(isPosted = true)
     }
+    fun useSuggestion() {
+        val suggestion = _uiState.value.result
+            ?.suggestion
+            ?.suggestedRewrite
+            ?: return
+
+        _uiState.value = _uiState.value.copy(
+            text = suggestion,
+            result = null,
+            error = null
+        )
+    }
 }

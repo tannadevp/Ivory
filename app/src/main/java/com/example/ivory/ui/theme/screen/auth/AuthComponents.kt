@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,21 +34,23 @@ internal val AuthAccent = Color(0xFF6C4DFF)
 internal val AuthMuted = Color(0xFFB7B1C8)
 
 @Composable
-internal fun AuthPage(content: @Composable () -> Unit) {
+fun AuthPage(
+    content: @Composable ColumnScope.() -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AuthBackground)
+            .background(Color(0xFFFAF8F3)) // Ivory background
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        content = { content() }
+        horizontalAlignment = Alignment.CenterHorizontally,
+        content = content
     )
 }
 
 @Composable
 internal fun AuthTitle(title: String, subtitle: String) {
-    Text(title, color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+    Text(title, color = Color.Black, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
     Text(subtitle, color = AuthMuted, modifier = Modifier.padding(top = 8.dp, bottom = 28.dp))
 }
 
@@ -81,8 +84,8 @@ internal fun AuthTextField(
         } else null,
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
             focusedBorderColor = AuthAccent,
             unfocusedBorderColor = Color.DarkGray,
             focusedLabelColor = AuthAccent,

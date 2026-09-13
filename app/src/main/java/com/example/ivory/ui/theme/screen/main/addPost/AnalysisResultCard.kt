@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,56 +31,167 @@ import com.example.ivory.data.remote.dto.ModerationResponseDto
 
 @Composable
 fun AnalysisResultCard(result: ModerationResponseDto) {
+
+    val toxicity = result.overallToxicity
+
     val statusColor = when {
-        result.overallToxicity > 0.7f -> Color(0xFFFF4D6D)
-        result.overallToxicity > 0.4f -> Color(0xFFFFC107)
+        toxicity >= 0.85 -> Color(0xFFFF4D6D)
+        toxicity >= 0.60 -> Color(0xFFFFC107)
         else -> Color(0xFF4CAF50)
     }
 
+    val statusText = when {
+        toxicity >= 0.85 -> "Highly toxic"
+        toxicity >= 0.60 -> "Potentially harmful"
+        else -> "Looks safe"
+    }
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
-        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+
+        Column(
+            modifier = Modifier.padding(18.dp)
+        ) {
+
+            // ───────────── Status ─────────────
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .size(10.dp)
                         .clip(CircleShape)
                         .background(statusColor)
                 )
+
                 Spacer(Modifier.width(8.dp))
+
                 Text(
-                    "Toxicity: ${(result.overallToxicity * 100).toInt()}%",
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold
+                    text = statusText,
+                    color = Color(0xFF35234F),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                Text(
+                    text = "${(toxicity * 100).toInt()}%",
+                    color = statusColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
-            Text(result.message, color = Color.LightGray, fontSize = 13.sp)
+            Spacer(Modifier.height(12.dp))
 
-            if (result.anyFlagged || result.isSensitive) {
-                Spacer(Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Outlined.WarningAmber,
-                        contentDescription = null,
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        "${result.warningTitle}: ${result.warningReason}",
-                        color = Color(0xFFFFC107),
-                        fontSize = 13.sp
-                    )
+            // ───────────── Message ─────────────
+
+            Text(
+                text = result.rating.message,
+                color = Color(0xFF756681),
+                fontSize = 13.sp,
+                lineHeight = 19.sp
+            )
+
+            // ───────────── Warning ─────────────
+
+            if (result.anyFlagged || result.rating.isSensitive) {
+
+                Spacer(Modifier.height(14.dp))
+
+                Surface(
+                    color = Color(0xFFFFF4D6),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Outlined.WarningAmber,
+                                contentDescription = null,
+                                tint = Color(0xFFE09B00),
+                                modifier = Modifier.size(18.dp)
+                            )
+
+                            Spacer(Modifier.width(7.dp))
+
+                            Text(
+                                text = result.rating.warningTitle,
+                                color = Color(0xFF8A6200),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            text = result.rating.warningReason,
+                            color = Color(0xFF806A35),
+                            fontSize = 12.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
                 }
-            } else {
-                Spacer(Modifier.height(8.dp))
-                Text("✓ Looks good to post", color = Color(0xFF4CAF50), fontSize = 13.sp)
             }
+
+            // ───────────── Suggestion ─────────────
+
+            result.suggestion?.let { suggestion ->
+
+                Spacer(Modifier.height(14.dp))
+
+                Surface(
+                    color = Color(0xFFF3EEFF),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+
+                        Text(
+                            text = "💡 Suggested rewrite",
+                            color = Color(0xFF6C4AB6),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            text = suggestion.suggestedRewrite,
+                            color = Color(0xFF35234F),
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp
+                        )
+                    }
+                }
+            }
+
+            // ───────────── Age rating ─────────────
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Age rating: ${result.rating.ageRating}",
+                color = Color(0xFF756681),
+                fontSize = 12.sp
+            )
         }
     }
 }

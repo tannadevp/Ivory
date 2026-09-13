@@ -35,30 +35,60 @@ fun GetDetailsScreen(
     }
 
     AuthPage {
-        AuthTitle("Tell us about you", "These details will appear on your Ivory profile.")
-        AuthTextField(uiState.name, viewModel::updateName, "Name")
-        AuthTextField(uiState.username, viewModel::updateUsername, "Username")
+        AuthTitle(
+            "Tell us about you",
+            "These details will appear on your Ivory profile."
+        )
+
+        AuthTextField(
+            uiState.name,
+            viewModel::updateName,
+            "Name"
+        )
+
+        AuthTextField(
+            uiState.username,
+            viewModel::updateUsername,
+            "Username"
+        )
+
         AuthTextField(
             uiState.age,
             viewModel::updateAge,
             "Age",
             keyboardType = KeyboardType.Number
         )
-        AuthTextField(uiState.dateOfBirth, viewModel::updateDateOfBirth, "Date of birth (DD/MM/YYYY)")
+
+        AuthTextField(
+            uiState.dateOfBirth,
+            viewModel::updateDateOfBirth,
+            "Date of birth (DD/MM/YYYY)"
+        )
+
         uiState.message?.let { message ->
             Text(
                 message,
-                color = if (uiState.isSaved) Color(0xFF77D98A) else Color(0xFFFF8080),
+                color = if (uiState.isSaved)
+                    Color(0xFFB9A7F5)
+                else
+                    Color(0xFFE8A0FF),
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(8.dp))
         }
+
         Button(
             onClick = viewModel::saveProfile,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = AuthAccent)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF9B7EDE)
+            )
         ) {
-            Text("Continue")
+            Text(
+                "Continue",
+                color = Color.White
+            )
         }
     }
 }

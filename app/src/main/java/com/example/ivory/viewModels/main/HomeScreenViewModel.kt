@@ -24,9 +24,13 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             feedStore.posts.collect { posts ->
-                _uiState.value = _uiState.value.copy(posts = posts, isLoading = false)
+                _uiState.value = _uiState.value.copy(
+                    posts = posts,
+                    isLoading = false
+                )
             }
         }
+
         loadFeed()
     }
 
@@ -40,20 +44,37 @@ class HomeViewModel @Inject constructor(
             )
 
             val moderatedPosts = feedStore.posts.value.map { post ->
-                runCatching { moderationRepository.moderatePost(post.content) }
+
+                runCatching {
+                    moderationRepository.moderatePost(post.content)
+                }
                     .getOrNull()
                     ?.let { result ->
+
                         post.copy(
                             moderation = ModerationInfo(
-                                toxicityScore = result.overallToxicity,
-                                ageRating = result.ageRating,
-                                isSensitive = result.isSensitive || result.anyFlagged,
-                                reason = result.warningReason.takeIf { it.isNotBlank() }
+
+                                // Double → Float
+                                toxicityScore =
+                                    result.overallToxicity.toFloat(),
+
+                                // These are now inside rating
+                                ageRating =
+                                    result.rating.ageRating,
+
+                                isSensitive =
+                                    result.rating.isSensitive ||
+                                            result.anyFlagged,
+
+                                reason =
+                                    result.rating.warningReason
+                                        .takeIf { it.isNotBlank() }
                             )
                         )
                     }
                     ?: post
             }
+
             feedStore.replacePosts(moderatedPosts)
         }
     }
